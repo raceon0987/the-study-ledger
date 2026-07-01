@@ -26,8 +26,7 @@
 *{box-sizing:border-box; margin:0; padding:0;}
 body{
   background:var(--paper);
-  background-image:
-    linear-gradient(var(--rule) 1px, transparent 1px);
+  background-image:linear-gradient(var(--rule) 1px, transparent 1px);
   background-size: 100% 32px;
   color:var(--ink);
   font-family:'Inter',sans-serif;
@@ -42,18 +41,70 @@ header{
   padding-bottom:18px; margin-bottom:22px;
   border-bottom:2px solid var(--ink);
 }
-.brand h1{
-  font-family:'Fraunces',serif; font-weight:700; font-size:34px;
-  letter-spacing:-0.01em;
-}
+.brand h1{font-family:'Fraunces',serif; font-weight:700; font-size:34px; letter-spacing:-0.01em;}
 .brand .sub{
   font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft);
   text-transform:uppercase; letter-spacing:.12em; margin-top:4px;
 }
-.dateStamp{
-  font-family:'IBM Plex Mono',monospace; text-align:right; font-size:13px; color:var(--ink-soft);
-}
+.dateStamp{font-family:'IBM Plex Mono',monospace; text-align:right; font-size:13px; color:var(--ink-soft);}
 .dateStamp b{display:block; font-family:'Fraunces',serif; font-size:20px; color:var(--ink); font-weight:600;}
+
+/* ===== POMODORO TIMER =====
+   Sits as its own ledger-styled card right under the header so it's visible
+   from every tab. The ring is a conic-gradient "donut" that fills as the
+   current interval elapses. Work sessions can be labelled with a skill so
+   completed (or partially-completed) minutes are auto-logged against it. */
+.pomodoroCard{
+  display:flex; align-items:center; gap:28px; flex-wrap:wrap;
+  background:var(--card); border:1px solid var(--rule); border-radius:6px;
+  padding:16px 22px; margin-bottom:26px;
+}
+.pomoSection{display:flex; flex-direction:column; align-items:flex-start; gap:6px;}
+.pomoLabel{
+  font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--ink-soft);
+}
+.pomoRing{
+  width:82px; height:82px; border-radius:50%; position:relative; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  background:conic-gradient(var(--forest) 0%, var(--paper-dark) 0%);
+  transition:background .25s linear;
+}
+.pomoRing::before{content:''; position:absolute; inset:6px; border-radius:50%; background:var(--card);}
+.pomoRing span{
+  position:relative; z-index:1; font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:16px; color:var(--ink);
+}
+.pomoModeTag{
+  font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.06em;
+  padding:3px 10px; border-radius:12px; align-self:center; cursor:pointer; user-select:none;
+}
+.pomoModeTag.work{background:var(--forest); color:var(--paper);}
+.pomoModeTag.break{background:var(--rust); color:var(--paper);}
+.pomoModeTag:hover{filter:brightness(1.1);}
+.intervalPicker{
+  position:absolute; z-index:20; background:var(--card); border:1.5px solid var(--ink); border-radius:6px;
+  box-shadow:0 4px 14px rgba(0,0,0,.18); padding:14px; min-width:190px; display:flex; flex-direction:column; gap:10px;
+}
+.intervalPicker .field{margin-bottom:0;}
+.intervalPicker label{
+  display:block; font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase;
+  letter-spacing:.06em; color:var(--ink-soft); margin-bottom:4px;
+}
+.intervalPicker input{
+  width:100%; border:1px solid var(--rule); border-radius:3px; padding:6px 8px;
+  font-family:'IBM Plex Mono',monospace; font-size:13px; background:var(--paper);
+}
+.intervalPicker button{align-self:flex-end;}
+.pomoSelectWrap select, .pomoSelectWrap input[type=text]{
+  border:1px solid var(--rule); border-radius:3px; padding:7px 10px; font-family:'Inter',sans-serif;
+  font-size:13px; background:var(--paper); min-width:170px;
+}
+.pomoControls{display:flex; gap:8px;}
+.pomoMini{
+  width:60px; border:1px solid var(--rule); border-radius:3px; padding:6px 8px;
+  font-family:'IBM Plex Mono',monospace; font-size:12px; background:var(--paper); text-align:center;
+}
+.pomoMiniLbl{font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft); align-self:center;}
 
 /* Tabs */
 .tabs{display:flex; gap:6px; margin-bottom:24px;}
@@ -69,9 +120,7 @@ header{
 .panel.active{display:block;}
 
 /* Skill strip (always visible summary) */
-.skillStrip{
-  display:flex; gap:14px; overflow-x:auto; padding-bottom:6px; margin-bottom:26px;
-}
+.skillStrip{display:flex; gap:14px; overflow-x:auto; padding-bottom:6px; margin-bottom:26px;}
 .skillCard{
   min-width:150px; background:var(--card); border:1px solid var(--rule); border-radius:4px;
   padding:14px; position:relative; flex-shrink:0;
@@ -79,8 +128,7 @@ header{
 .skillCard .swatch{width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px;}
 .skillCard .name{font-family:'Fraunces',serif; font-weight:600; font-size:15px;}
 .skillCard .stamp{
-  position:absolute; top:10px; right:10px;
-  width:38px; height:38px; border-radius:50%;
+  position:absolute; top:10px; right:10px; width:38px; height:38px; border-radius:50%;
   border:2px dashed var(--forest); display:flex; align-items:center; justify-content:center;
   font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px; color:var(--forest);
   transform:rotate(-8deg);
@@ -89,6 +137,7 @@ header{
 .skillCard .deadline.urgent{color:var(--danger); font-weight:600;}
 .skillCard .barBg{height:5px; background:var(--paper-dark); border-radius:3px; margin-top:8px; overflow:hidden;}
 .skillCard .barFill{height:100%; border-radius:3px;}
+.skillCard .taskMini{font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft); margin-top:5px;}
 .addSkillCard{
   min-width:150px; border:1.5px dashed var(--rule); border-radius:4px; flex-shrink:0;
   display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-soft);
@@ -178,13 +227,9 @@ header{
 .taskRow.done .txt{text-decoration:line-through; color:var(--ink-soft);}
 .taskRow .due{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-align:right;}
 .taskRow .due.overdue{color:var(--danger); font-weight:600;}
-.taskRow .rmBtn{
-  border:none; background:transparent; color:var(--ink-soft); cursor:pointer; font-size:16px; line-height:1;
-}
+.taskRow .rmBtn{border:none; background:transparent; color:var(--ink-soft); cursor:pointer; font-size:16px; line-height:1;}
 .taskRow .rmBtn:hover{color:var(--danger);}
-.addTaskRow{
-  display:flex; gap:10px; margin-top:14px; padding-top:14px; border-top:1.5px dashed var(--rule);
-}
+.addTaskRow{display:flex; gap:10px; margin-top:14px; padding-top:14px; border-top:1.5px dashed var(--rule);}
 .addTaskRow input[type=text]{
   flex:1; border:1px solid var(--rule); border-radius:3px; padding:9px 12px; font-family:'Inter',sans-serif; font-size:14px; background:var(--paper);
 }
@@ -212,37 +257,13 @@ header{
 .iconBtn:hover{border-color:var(--ink); color:var(--ink);}
 .overdue{color:var(--danger); font-weight:600;}
 .dueSoon{color:var(--rust); font-weight:600;}
-/* Pomodoro 135deg, rgb(9, 92, 9)  0%, #90d685 100% solid #006a1ee9 */
-.pomodoro-btn{
-  background: linear-gradient(135deg, #d0d5c5 0%, #549112 100%);
-  border: 1px solid #fff;
-  border-radius: 20px;
-  padding: 6px 14px;
-  font-size: 13px;
-  color: #2F4B3C;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: 0 3px 10px rgba(255, 107, 107, 0.25);
-  transition: all 0.25s ease;
-}
 
-/* 135deg, #d0d5c5 0%, #549112 100%) */
-
-.pomodoro-btn:hover{
-  background: linear-gradient(135deg, rgb(9, 92, 9)  0%, #90d685 100%);
-  border-color: #f7f4f4;
-  color:#fff;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(255, 82, 82, 0.35);
-}
+/* Export / Import bar */
+.dataBar{display:flex; gap:10px; margin-top:18px;}
+.dataBar .tab{padding:6px 14px; font-size:11px; border-radius:14px;}
 
 /* Modal */
-.overlay{
-  position:fixed; inset:0; background:rgba(35,38,43,.45); display:none; align-items:center; justify-content:center; z-index:50;
-}
+.overlay{position:fixed; inset:0; background:rgba(35,38,43,.45); display:none; align-items:center; justify-content:center; z-index:50;}
 .overlay.active{display:flex;}
 .modal{
   background:var(--card); border-radius:6px; padding:26px; width:420px; max-width:90vw;
@@ -265,12 +286,11 @@ header{
 .modalActions{display:flex; justify-content:space-between; margin-top:18px; align-items:center;}
 .btn{
   font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:.05em;
-  padding:9px 16px; border-radius:3px; cursor:pointer; border:1.5px solid var(--ink);
+  padding:9px 16px; border-radius:3px; cursor:pointer; border:1.5px solid var(--ink); background:transparent; color:var(--ink);
 }
 .btnPrimary{background:var(--ink); color:var(--paper);}
-.btnGhost{background:transparent; color:var(--ink-soft); border-color:transparent;}
+.btnGhost{background:transparent; color:var(--ink-soft); border-color:var(--rule);}
 .btnDanger{border-color:var(--danger); color:var(--danger); background:transparent;}
-.loading{text-align:center; padding:60px; font-family:'IBM Plex Mono',monospace; color:var(--ink-soft);}
 </style>
 </head>
 <body>
@@ -280,16 +300,22 @@ header{
       <h1>The Study Ledger</h1>
       <div class="sub">Progress · Daily Goals · Deadlines</div>
     </div>
-    <div>
-      <button class="pomodoro-btn" id="mode" onclick="start()">Start</button>
-      <button class="pomodoro-btn" id="time" onclick="pause()">Pause</button>
-      <button class="pomodoro-btn" onclick="reset()">Reset</button>
-    </div>
-   
-   <div class="dateStamp"><span id="todayLong"></span><b id="todayDay"></b></div>
-
-
+    <div class="dateStamp"><span id="todayLong"></span><b id="todayDay"></b></div>
   </header>
+
+  <!-- Pomodoro focus timer: always visible, theme-matched, configurable interval + skill labelling -->
+  <div class="pomodoroCard">
+    <div class="pomoSection">
+      <div class="pomoRing" id="pomoRing" title="Click to set work/break length"><span id="pomoTimeDisplay">25:00</span></div>
+      <span class="pomoModeTag work" id="pomoModeTag" title="Click to start/pause, double-click to reset">Focus</span>
+    </div>
+
+    <div class="pomoSection pomoSelectWrap">
+      <span class="pomoLabel">Focus on</span>
+      <select id="pomoSkillSelect"><option value="">Custom label…</option></select>
+      <input type="text" id="pomoCustomLabel" placeholder="e.g. Reading, Deep work" style="display:none;">
+    </div>
+  </div>
 
   <div class="skillStrip" id="skillStrip"></div>
 
@@ -320,16 +346,16 @@ header{
   <div class="panel" id="panel-targets">
     <div class="dayHead">Targets &amp; Deadlines</div>
     <table class="ledgerTable" id="targetsTable">
-      <thead><tr><th>Skill</th><th>Weekly hrs (this wk)</th><th>Deadline</th><th>Weekly progress</th><th>Lessons/Tasks</th><th></th></tr></thead>
+      <thead><tr><th>Skill</th><th>Weekly hrs (this wk)</th><th>Deadline</th><th>Lesson progress</th><th>Lessons/Tasks</th><th></th></tr></thead>
       <tbody id="targetsBody"></tbody>
     </table>
-  </div>
-  <div style="display:flex; gap:10px; margin:8px; padding: 4px;">
-    <button class="tab" onclick="exportData()" style="padding: 4px; height: 24px; border-radius: 12px; font-size:x-small;">Export</button>
-    <label class="tab" style="display:flex;align-items:center;justify-content:center;cursor:pointer;padding: 4px;height: 24px; border-radius: 12px; font-size: x-small;">
-      Import
-      <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(event)">
-    </label>
+    <div class="dataBar">
+      <button class="tab" onclick="exportData()">Export backup</button>
+      <label class="tab" style="cursor:pointer;">
+        Import backup
+        <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(event)">
+      </label>
+    </div>
   </div>
 </div>
 
@@ -352,13 +378,19 @@ header{
 </div>
 
 <script>
+/* =========================================================================
+   DATA MODEL (persisted to localStorage so it survives across sessions)
+   skills   : [{id, name, color, hours(weekly target), deadline, desc, tasks:[{id,text,due,done}]}]
+   logs     : { 'YYYY-MM-DD': { skillId: {goal, done, minutes} } }
+   schedule : [{id, day(0-6, Mon=0), hour, skillId}]
+   ========================================================================= */
 const PALETTE = ['#2F4B3C','#3F5E77','#C1793C','#A23B2E','#B08D3E','#6b4e8e','#3d7068','#8a4a3a'];
 const HOURS = Array.from({length:18}, (_,i)=>i+6); // 6:00 - 23:00
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 let skills = [];
-let logs = {};      // { 'YYYY-MM-DD': { skillId: {goal, done, minutes} } }
-let schedule = [];  // [{id, day(0-6), hour, skillId}]
+let logs = {};
+let schedule = [];
 let editingSkillId = null;
 let activePicker = null;
 let selectedTaskSkill = null; // skill id currently shown in Lessons & Tasks tab
@@ -367,25 +399,22 @@ const todayKey = () => fmtDate(new Date());
 function fmtDate(d){ return d.toISOString().slice(0,10); }
 function uid(){ return Math.random().toString(36).slice(2,9); }
 
-
+/* ---------- persistence (localStorage is synchronous, no need for async/await) ---------- */
 function loadAll(){
-  document.querySelector('.wrap').style.opacity = '0.4';
   try{
-    const [s,l,sc] =  [
-    localStorage.getItem('skills'),
-    localStorage.getItem('logs'),
-    localStorage.getItem('schedule')];
+    const s = localStorage.getItem('skills');
+    const l = localStorage.getItem('logs');
+    const sc = localStorage.getItem('schedule');
     skills = s ? JSON.parse(s) : [];
-    skills.forEach(sk=>{ if(!Array.isArray(sk.tasks)) sk.tasks = []; });
+    skills.forEach(sk=>{ if(!Array.isArray(sk.tasks)) sk.tasks = []; }); // migrate older saves
     logs = l ? JSON.parse(l) : {};
     schedule = sc ? JSON.parse(sc) : [];
   }catch(e){ console.error('load error', e); }
-  document.querySelector('.wrap').style.opacity = '1';
   renderAll();
 }
-function saveSkills(){ try{localStorage.setItem('skills', JSON.stringify(skills)); }catch(e){console.error(e);} }
-function saveLogs(){ try{ localStorage.setItem('logs', JSON.stringify(logs)); }catch(e){console.error(e);} }
-function saveSchedule(){ try{ localStorage.setItem('schedule', JSON.stringify(schedule)); }catch(e){console.error(e);} }
+function saveSkills(){ try{ localStorage.setItem('skills', JSON.stringify(skills)); }catch(e){ console.error(e); } }
+function saveLogs(){ try{ localStorage.setItem('logs', JSON.stringify(logs)); }catch(e){ console.error(e); } }
+function saveSchedule(){ try{ localStorage.setItem('schedule', JSON.stringify(schedule)); }catch(e){ console.error(e); } }
 
 /* ---------- date helpers ---------- */
 function startOfWeek(d){
@@ -408,7 +437,6 @@ function weekMinutes(skillId){
 function currentStreak(skillId){
   let streak = 0;
   let d = new Date();
-  // if today not done yet, start counting from yesterday
   const todayDone = logs[todayKey()] && logs[todayKey()][skillId] && logs[todayKey()][skillId].done;
   if(!todayDone) d.setDate(d.getDate()-1);
   for(let i=0;i<400;i++){
@@ -425,6 +453,12 @@ function daysUntil(dateStr){
   const dl = new Date(dateStr+'T00:00:00');
   return Math.round((dl-now)/86400000);
 }
+// task completion ratio drives every progress bar in the app (0 when no tasks yet)
+function taskProgressPct(sk){
+  if(!sk.tasks || sk.tasks.length===0) return 0;
+  const done = sk.tasks.filter(t=>t.done).length;
+  return Math.round(done/sk.tasks.length*100);
+}
 
 /* ---------- render ---------- */
 function renderAll(){
@@ -434,6 +468,7 @@ function renderAll(){
   renderPlanner();
   renderLessons();
   renderTargets();
+  renderPomoSkillOptions();
 }
 function renderHeader(){
   const now = new Date();
@@ -445,10 +480,10 @@ function renderSkillStrip(){
   const el = document.getElementById('skillStrip');
   el.innerHTML = '';
   skills.forEach(sk=>{
+    const pct = taskProgressPct(sk); // bar now reflects lessons/tasks completed, not time
     const wMin = weekMinutes(sk.id);
-    const wTargetMin = (sk.hours||0)*60;
-    const pct = wTargetMin>0 ? Math.min(100, Math.round(wMin/wTargetMin*100)) : 0;
     const du = daysUntil(sk.deadline);
+    const doneTasks = sk.tasks.filter(t=>t.done).length;
     const card = document.createElement('div');
     card.className='skillCard';
     card.innerHTML = `
@@ -456,6 +491,7 @@ function renderSkillStrip(){
       <div class="name"><span class="swatch" style="background:${sk.color}"></span>${escapeHtml(sk.name)}</div>
       <div class="deadline ${du!==null && du<=3 ? 'urgent':''}">${du===null?'no deadline set': du<0? Math.abs(du)+'d overdue' : du===0? 'due today' : du+'d to deadline'}</div>
       <div class="barBg"><div class="barFill" style="width:${pct}%; background:${sk.color}"></div></div>
+      <div class="taskMini">${doneTasks}/${sk.tasks.length} lessons · ${(wMin/60).toFixed(1)}h this wk</div>
     `;
     card.addEventListener('click', ()=>openModal(sk.id));
     el.appendChild(card);
@@ -490,23 +526,22 @@ function renderToday(){
     list.appendChild(row);
   });
   list.querySelectorAll('.check').forEach(c=>{
-    c.addEventListener('click', async ()=>{
-      const id = c.dataset.skill;
-      logs[key][id].done = !logs[key][id].done;
-      await saveLogs();
+    c.addEventListener('click', ()=>{
+      logs[key][c.dataset.skill].done = !logs[key][c.dataset.skill].done;
+      saveLogs();
       renderAll();
     });
   });
   list.querySelectorAll('input[data-field="goal"]').forEach(inp=>{
-    inp.addEventListener('change', async ()=>{
+    inp.addEventListener('change', ()=>{
       logs[key][inp.dataset.skill].goal = inp.value;
-      await saveLogs();
+      saveLogs();
     });
   });
   list.querySelectorAll('input[data-field="minutes"]').forEach(inp=>{
-    inp.addEventListener('change', async ()=>{
+    inp.addEventListener('change', ()=>{
       logs[key][inp.dataset.skill].minutes = parseInt(inp.value)||0;
-      await saveLogs();
+      saveLogs();
       renderSkillStrip();
     });
   });
@@ -514,10 +549,10 @@ function renderToday(){
 function renderPlanner(){
   const grid = document.getElementById('plannerGrid');
   grid.innerHTML='';
-  grid.appendChild(makeCell('corner','', ''));
-  DAYS.forEach(d=>grid.appendChild(makeCell('dayHdr', d, '')));
+  grid.appendChild(makeCell('corner',''));
+  DAYS.forEach(d=>grid.appendChild(makeCell('dayHdr', d)));
   HOURS.forEach(h=>{
-    grid.appendChild(makeCell('hourLbl', (h%24)+':00',''));
+    grid.appendChild(makeCell('hourLbl', (h%24)+':00'));
     for(let day=0; day<7; day++){
       const block = schedule.find(b=>b.day===day && b.hour===h);
       const cell = document.createElement('div');
@@ -535,7 +570,7 @@ function renderPlanner(){
 function makeCell(cls, text){
   const d = document.createElement('div');
   d.className = cls;
-  d.textContent = text;
+  d.textContent = text || '';
   return d;
 }
 function openPicker(e, day, hour){
@@ -548,19 +583,19 @@ function openPicker(e, day, hour){
   pk.style.top = (window.scrollY + rect.bottom + 4) + 'px';
   const clearOpt = document.createElement('div');
   clearOpt.className='opt'; clearOpt.textContent='— clear —';
-  clearOpt.addEventListener('click', async ()=>{
+  clearOpt.addEventListener('click', ()=>{
     schedule = schedule.filter(b=>!(b.day===day && b.hour===hour));
-    await saveSchedule(); renderPlanner(); closePicker();
+    saveSchedule(); renderPlanner(); closePicker();
   });
   pk.appendChild(clearOpt);
   skills.forEach(sk=>{
     const opt = document.createElement('div');
     opt.className='opt';
     opt.innerHTML = `<span class="sw" style="width:9px;height:9px;border-radius:2px;background:${sk.color}"></span>${escapeHtml(sk.name)}`;
-    opt.addEventListener('click', async ()=>{
+    opt.addEventListener('click', ()=>{
       schedule = schedule.filter(b=>!(b.day===day && b.hour===hour));
       schedule.push({id:uid(), day, hour, skillId:sk.id});
-      await saveSchedule(); renderPlanner(); closePicker();
+      saveSchedule(); renderPlanner(); closePicker();
     });
     pk.appendChild(opt);
   });
@@ -568,9 +603,7 @@ function openPicker(e, day, hour){
   activePicker = pk;
   setTimeout(()=>document.addEventListener('click', outsidePickerClick), 0);
 }
-function outsidePickerClick(e){
-  if(activePicker && !activePicker.contains(e.target)){ closePicker(); }
-}
+function outsidePickerClick(e){ if(activePicker && !activePicker.contains(e.target)){ closePicker(); } }
 function closePicker(){
   if(activePicker){ activePicker.remove(); activePicker=null; document.removeEventListener('click', outsidePickerClick); }
 }
@@ -583,9 +616,8 @@ function renderLessons(){
     body.innerHTML = '<div class="emptyState">Add a skill first, then break it into lessons or tasks here.</div>';
     return;
   }
-  if(!selectedTaskSkill || !skills.find(s=>s.id===selectedTaskSkill)){
-    selectedTaskSkill = skills[0].id;
-  }
+  if(!selectedTaskSkill || !skills.find(s=>s.id===selectedTaskSkill)) selectedTaskSkill = skills[0].id;
+
   skills.forEach(sk=>{
     const chip = document.createElement('div');
     chip.className = 'skillCard chip' + (sk.id===selectedTaskSkill?' sel':'');
@@ -607,8 +639,7 @@ function renderLessons(){
     const row = document.createElement('div');
     row.className = 'taskRow' + (t.done?' done':'');
     const du = daysUntil(t.due);
-    let dueTxt = '';
-    let overdue = false;
+    let dueTxt = '', overdue = false;
     if(t.due){
       if(du<0){ dueTxt = `${Math.abs(du)}d overdue`; overdue = !t.done; }
       else if(du===0){ dueTxt = 'due today'; overdue = !t.done; }
@@ -620,16 +651,8 @@ function renderLessons(){
       <div class="due ${overdue?'overdue':''}">${dueTxt}</div>
       <button class="rmBtn" data-id="${t.id}" title="Remove">×</button>
     `;
-    row.querySelector('.check').addEventListener('click', async ()=>{
-      t.done = !t.done;
-      saveSkills();
-      renderAll();
-    });
-    row.querySelector('.rmBtn').addEventListener('click', async ()=>{
-      sk.tasks = sk.tasks.filter(x=>x.id!==t.id);
-      saveSkills();
-      renderAll();
-    });
+    row.querySelector('.check').addEventListener('click', ()=>{ t.done = !t.done; saveSkills(); renderAll(); });
+    row.querySelector('.rmBtn').addEventListener('click', ()=>{ sk.tasks = sk.tasks.filter(x=>x.id!==t.id); saveSkills(); renderAll(); });
     body.appendChild(row);
   });
 
@@ -651,20 +674,19 @@ function addTaskHandler(){
   if(!text) return;
   const sk = skills.find(s=>s.id===selectedTaskSkill);
   sk.tasks.push({id:uid(), text, due:dueEl.value||'', done:false});
- saveSkills();
+  saveSkills();
   renderAll();
 }
 function renderTargets(){
   const body = document.getElementById('targetsBody');
   body.innerHTML='';
   if(skills.length===0){
-    body.innerHTML = '<tr><td colspan="5" style="padding:24px 10px; color:var(--ink-soft); font-family:\'IBM Plex Mono\',monospace;">No skills tracked yet.</td></tr>';
+    body.innerHTML = '<tr><td colspan="6" style="padding:24px 10px; color:var(--ink-soft); font-family:\'IBM Plex Mono\',monospace;">No skills tracked yet.</td></tr>';
     return;
   }
   skills.forEach(sk=>{
     const wMin = weekMinutes(sk.id);
-    const wTargetMin = (sk.hours||0)*60;
-    const pct = wTargetMin>0 ? Math.min(100, Math.round(wMin/wTargetMin*100)) : 0;
+    const pct = taskProgressPct(sk); // lesson-completion based, not time based
     const du = daysUntil(sk.deadline);
     let dueLabel = '—', dueCls='';
     if(du!==null){
@@ -729,7 +751,7 @@ function renderSwatches(selected){
 function closeModal(){ document.getElementById('overlay').classList.remove('active'); editingSkillId=null; }
 document.getElementById('cancelBtn').addEventListener('click', closeModal);
 document.getElementById('overlay').addEventListener('click', (e)=>{ if(e.target.id==='overlay') closeModal(); });
-document.getElementById('saveBtn').addEventListener('click', async ()=>{
+document.getElementById('saveBtn').addEventListener('click', ()=>{
   const name = document.getElementById('fName').value.trim();
   if(!name) return;
   const hours = parseFloat(document.getElementById('fHours').value)||0;
@@ -746,20 +768,20 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
   closeModal();
   renderAll();
 });
-document.getElementById('deleteBtn').addEventListener('click', async ()=>{
+document.getElementById('deleteBtn').addEventListener('click', ()=>{
   if(!editingSkillId) return;
   skills = skills.filter(s=>s.id!==editingSkillId);
   schedule = schedule.filter(b=>b.skillId!==editingSkillId);
   Object.values(logs).forEach(day=>{ delete day[editingSkillId]; });
-  Promise.all([saveSkills(), saveSchedule(), saveLogs()]);
+  saveSkills(); saveSchedule(); saveLogs();
   closeModal();
   renderAll();
 });
 
 /* ---------- tabs ---------- */
-document.querySelectorAll('.tab').forEach(t=>{
+document.querySelectorAll('.tab[data-tab]').forEach(t=>{
   t.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab[data-tab]').forEach(x=>x.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
     document.getElementById('panel-'+t.dataset.tab).classList.add('active');
@@ -769,104 +791,183 @@ document.querySelectorAll('.tab').forEach(t=>{
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function escapeAttr(s){ return escapeHtml(s); }
 
-loadAll();
-// pomodoro
-let workTime = 25 * 60;   // 25 minutes
-let breakTime = 5 * 60;   // 5 minutes
+/* =========================================================================
+   POMODORO TIMER
+   Work/break lengths default to 25/5 but are editable any time the timer
+   isn't mid-interval. Choosing a skill in "Focus on" causes finished (and
+   partially finished, if you hit reset mid-session) work minutes to be
+   auto-added to that skill's minute count for today. Choosing "Custom
+   label" just runs the timer without logging minutes anywhere.
+   ========================================================================= */
+let pomoWorkMinutes = 25;
+let pomoBreakMinutes = 5;
+let pomoTimeLeft = pomoWorkMinutes * 60;
+let pomoIsWorking = true;
+let pomoTimerHandle = null;
 
-let timeLeft = workTime;
-let timer = null;
-let isWorking = true;
-
-// Format time mm:ss
-function formatTime(sec) {
-  let m = Math.floor(sec / 60);
-  let s = sec % 60;
-  return `${m}:${s < 10 ? '0' : ''}${s}`;
+function pomoFormatTime(sec){
+  const m = Math.floor(sec/60), s = sec%60;
+  return `${m}:${s<10?'0':''}${s}`;
 }
-
-// Update UI
-function updateDisplay() {
-  document.getElementById("time").textContent = formatTime(timeLeft);
-  document.getElementById("mode").textContent = isWorking ? "Work" : "Break";
+function pomoUpdateDisplay(){
+  const totalForMode = (pomoIsWorking ? pomoWorkMinutes : pomoBreakMinutes) * 60;
+  const pct = totalForMode>0 ? Math.round((1 - pomoTimeLeft/totalForMode)*100) : 0;
+  const ringColor = pomoIsWorking ? 'var(--forest)' : 'var(--rust)';
+  document.getElementById('pomoTimeDisplay').textContent = pomoFormatTime(pomoTimeLeft);
+  document.getElementById('pomoRing').style.background = `conic-gradient(${ringColor} ${pct}%, var(--paper-dark) ${pct}%)`;
+  document.getElementById('pomoModeTag').className = 'pomoModeTag ' + (pomoIsWorking ? 'work' : 'break');
+  pomoUpdateToggleLabel();
 }
-
-// Start timer
-function start() {
-  if (timer) return;
-
-  timer = setInterval(() => {
-    timeLeft--;
-    updateDisplay();
-
-    if (timeLeft <= 0) {
-      clearInterval(timer);
-      timer = null;
-
-      // Switch mode
-      isWorking = !isWorking;
-      timeLeft = isWorking ? workTime : breakTime;
-
-      updateDisplay();
-      start(); // auto-start next session
-    }
-  }, 1000);
+// keep the skill dropdown in sync whenever skills are added/renamed/removed
+function renderPomoSkillOptions(){
+  const sel = document.getElementById('pomoSkillSelect');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Custom label…</option>' +
+    skills.map(sk=>`<option value="${sk.id}">${escapeHtml(sk.name)}</option>`).join('');
+  sel.value = skills.find(s=>s.id===prev) ? prev : '';
 }
-
-// Pause timer
-function pause() {
-  clearInterval(timer);
-  timer = null;
+document.getElementById('pomoSkillSelect').addEventListener('change', (e)=>{
+  document.getElementById('pomoCustomLabel').style.display = e.target.value ? 'none' : 'block';
+});
+// add finished/partial work minutes to the chosen skill's log entry for today
+function pomoCreditMinutes(minutes){
+  const skillId = document.getElementById('pomoSkillSelect').value;
+  if(!skillId || minutes<=0) return;
+  const key = todayKey();
+  if(!logs[key]) logs[key] = {};
+  if(!logs[key][skillId]) logs[key][skillId] = {goal:'', done:false, minutes:0};
+  logs[key][skillId].minutes = (logs[key][skillId].minutes||0) + Math.round(minutes);
+  saveLogs();
+  renderAll();       // refreshes minute totals everywhere (also rebuilds the skill dropdown)
+  pomoUpdateDisplay(); // renderAll doesn't touch the timer's own ring/label, so re-sync it
 }
-
-// Reset timer
-function reset() {
-  clearInterval(timer);
-  timer = null;
-
-  isWorking = true;
-  timeLeft = workTime;
-
-  updateDisplay();
+function pomoTick(){
+  pomoTimeLeft--;
+  if(pomoTimeLeft <= 0){
+    if(pomoIsWorking) pomoCreditMinutes(pomoWorkMinutes); // full work session completed
+    pomoIsWorking = !pomoIsWorking;
+    pomoTimeLeft = (pomoIsWorking ? pomoWorkMinutes : pomoBreakMinutes) * 60;
+  }
+  pomoUpdateDisplay();
 }
+function pomoStart(){
+  if(pomoTimerHandle) return;
+  pomoTimerHandle = setInterval(pomoTick, 1000);
+  pomoRunning = true;
+  pomoUpdateToggleLabel();
+}
+function pomoPause(){
+  clearInterval(pomoTimerHandle);
+  pomoTimerHandle = null;
+  pomoRunning = false;
+  pomoUpdateToggleLabel();
+}
+function pomoReset(){
+  if(pomoIsWorking){
+    const elapsedMin = Math.floor(pomoWorkMinutes - pomoTimeLeft/60);
+    if(elapsedMin >= 1) pomoCreditMinutes(elapsedMin); // credit partial progress before wiping it
+  }
+  pomoPause();
+  pomoIsWorking = true;
+  pomoTimeLeft = pomoWorkMinutes * 60;
+  pomoUpdateDisplay();
+  pomoUpdateToggleLabel();
+}
+// the "Work"/"Break" pill doubles as the start/pause control:
+// single click toggles running state, double click resets. Its text shows
+// the action that will happen next; its color still reflects work vs break.
+let pomoRunning = false;
 
-// Initial render
-updateDisplay();
-function exportData() {
-  const dataStr = JSON.stringify(data, null, 2);
-  const blob = new Blob([dataStr], { type: "application/json" });
+function pomoUpdateToggleLabel(){
+  const tag = document.getElementById('pomoModeTag');
+  tag.textContent = pomoRunning ? 'Pause' : (pomoIsWorking ? 'Focus' : 'Start Break');
+}
+function pomoToggle(){
+  if(pomoRunning) pomoPause(); else pomoStart();
+}
+document.getElementById('pomoModeTag').addEventListener('click', pomoToggle);
+document.getElementById('pomoModeTag').addEventListener('dblclick', (e)=>{
+  e.preventDefault();
+  pomoReset();
+});
+// clicking the donut ring opens a small popover to edit work/break length —
+// mirrors the .picker pattern already used by the weekly planner
+let activeIntervalPicker = null;
+
+function openIntervalPicker(e){
+  e.stopPropagation();
+  closeIntervalPicker();
+  const pk = document.createElement('div');
+  pk.className = 'intervalPicker';
+  const rect = e.currentTarget.getBoundingClientRect();
+  pk.style.left = (window.scrollX + rect.left) + 'px';
+  pk.style.top = (window.scrollY + rect.bottom + 8) + 'px';
+  pk.innerHTML = `
+    <div class="field"><label>Work (min)</label><input type="number" id="ivWork" min="1" max="180" value="${pomoWorkMinutes}"></div>
+    <div class="field"><label>Break (min)</label><input type="number" id="ivBreak" min="1" max="60" value="${pomoBreakMinutes}"></div>
+    <button class="btn btnPrimary" id="ivApply">Apply</button>
+  `;
+  document.body.appendChild(pk);
+  activeIntervalPicker = pk;
+  document.getElementById('ivApply').addEventListener('click', ()=>{
+    pomoWorkMinutes = Math.max(1, parseInt(document.getElementById('ivWork').value)||25);
+    pomoBreakMinutes = Math.max(1, parseInt(document.getElementById('ivBreak').value)||5);
+    // only snap the live countdown to the new length if that interval isn't already running
+    if(!pomoTimerHandle) pomoTimeLeft = (pomoIsWorking ? pomoWorkMinutes : pomoBreakMinutes) * 60;
+    pomoUpdateDisplay();
+    closeIntervalPicker();
+  });
+  setTimeout(()=>document.addEventListener('click', outsideIntervalClick), 0);
+}
+function outsideIntervalClick(ev){
+  if(activeIntervalPicker && !activeIntervalPicker.contains(ev.target) && ev.target.id!=='pomoRing'){
+    closeIntervalPicker();
+  }
+}
+function closeIntervalPicker(){
+  if(activeIntervalPicker){ activeIntervalPicker.remove(); activeIntervalPicker=null; document.removeEventListener('click', outsideIntervalClick); }
+}
+document.getElementById('pomoRing').addEventListener('click', openIntervalPicker);
+
+/* =========================================================================
+   EXPORT / IMPORT — backs up/restores the whole app state as one JSON file
+   ========================================================================= */
+function exportData(){
+  const payload = { skills, logs, schedule, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
+  const a = document.createElement('a');
   a.href = url;
-  a.download = "expense-backup.json";
+  a.download = `study-ledger-backup-${todayKey()}.json`;
   a.click();
-
   URL.revokeObjectURL(url);
 }
-
-function importData(event) {
+function importData(event){
   const file = event.target.files[0];
-  if (!file) return;
-
+  if(!file) return;
   const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
+  reader.onload = (e)=>{
+    try{
       const imported = JSON.parse(e.target.result);
-      if (imported.entries) {
-        data = imported;
-        save();
-        render();
-        alert("Data imported successfully");
-      } else {
-        alert("Invalid file");
-      }
-    } catch {
-      alert("Error reading file");
+      if(!Array.isArray(imported.skills)) throw new Error('missing skills array');
+      skills = imported.skills;
+      skills.forEach(sk=>{ if(!Array.isArray(sk.tasks)) sk.tasks = []; });
+      logs = imported.logs || {};
+      schedule = imported.schedule || [];
+      saveSkills(); saveLogs(); saveSchedule();
+      renderAll();
+      alert('Data imported successfully.');
+    }catch(err){
+      alert('Invalid backup file.');
     }
   };
   reader.readAsText(file);
+  event.target.value = ''; // allow importing the same filename again later
 }
+
+/* ---------- boot ---------- */
+loadAll();
+pomoUpdateDisplay();
 </script>
 </body>
 </html>
