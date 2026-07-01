@@ -1,6 +1,6 @@
 {
     "name": "The Study Ledger",
-    "short_name": "Study Ledger",
+    "short_name": "StudyLedger",
     "start_url": "/the-study-ledger/",
     "display": "standalone",
     "background_color": "#000000",
