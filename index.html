@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Study Ledger</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --paper:#EFEAE0;
+  --paper-dark:#E4DDCE;
+  --card:#F7F4EC;
+  --ink:#23262B;
+  --ink-soft:#6b6a60;
+  --forest:#2F4B3C;
+  --forest-soft:#4a6b57;
+  --rust:#C1793C;
+  --slate:#3F5E77;
+  --rule:#C9C0AC;
+  --danger:#A23B2E;
+  --gold:#B08D3E;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  background:var(--paper);
+  background-image:
+    linear-gradient(var(--rule) 1px, transparent 1px);
+  background-size: 100% 32px;
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  padding-bottom:60px;
+}
+.wrap{max-width:1100px; margin:0 auto; padding:28px 24px 40px;}
+
+/* Header */
+header{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  padding-bottom:18px; margin-bottom:22px;
+  border-bottom:2px solid var(--ink);
+}
+.brand h1{
+  font-family:'Fraunces',serif; font-weight:700; font-size:34px;
+  letter-spacing:-0.01em;
+}
+.brand .sub{
+  font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft);
+  text-transform:uppercase; letter-spacing:.12em; margin-top:4px;
+}
+.dateStamp{
+  font-family:'IBM Plex Mono',monospace; text-align:right; font-size:13px; color:var(--ink-soft);
+}
+.dateStamp b{display:block; font-family:'Fraunces',serif; font-size:20px; color:var(--ink); font-weight:600;}
+
+/* Tabs */
+.tabs{display:flex; gap:6px; margin-bottom:24px;}
+.tab{
+  font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:.06em; text-transform:uppercase;
+  padding:9px 18px; border:1.5px solid var(--ink); background:transparent; color:var(--ink);
+  cursor:pointer; border-radius:2px; transition:.15s;
+}
+.tab.active{background:var(--ink); color:var(--paper);}
+.tab:not(.active):hover{background:var(--paper-dark);}
+
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* Skill strip (always visible summary) */
+.skillStrip{
+  display:flex; gap:14px; overflow-x:auto; padding-bottom:6px; margin-bottom:26px;
+}
+.skillCard{
+  min-width:150px; background:var(--card); border:1px solid var(--rule); border-radius:4px;
+  padding:14px; position:relative; flex-shrink:0;
+}
+.skillCard .swatch{width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px;}
+.skillCard .name{font-family:'Fraunces',serif; font-weight:600; font-size:15px;}
+.skillCard .stamp{
+  position:absolute; top:10px; right:10px;
+  width:38px; height:38px; border-radius:50%;
+  border:2px dashed var(--forest); display:flex; align-items:center; justify-content:center;
+  font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px; color:var(--forest);
+  transform:rotate(-8deg);
+}
+.skillCard .deadline{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); margin-top:20px;}
+.skillCard .deadline.urgent{color:var(--danger); font-weight:600;}
+.skillCard .barBg{height:5px; background:var(--paper-dark); border-radius:3px; margin-top:8px; overflow:hidden;}
+.skillCard .barFill{height:100%; border-radius:3px;}
+.addSkillCard{
+  min-width:150px; border:1.5px dashed var(--rule); border-radius:4px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-soft);
+  font-family:'IBM Plex Mono',monospace; font-size:13px; transition:.15s;
+}
+.addSkillCard:hover{border-color:var(--ink); color:var(--ink);}
+
+/* Today panel */
+.dayHead{font-family:'Fraunces',serif; font-size:20px; font-weight:600; margin-bottom:14px;}
+.goalRow{
+  display:grid; grid-template-columns:22px 130px 1fr 90px 70px; gap:14px; align-items:center;
+  padding:14px 12px; background:var(--card); border:1px solid var(--rule); border-radius:4px; margin-bottom:10px;
+}
+.goalRow .check{
+  width:20px; height:20px; border:1.5px solid var(--ink); border-radius:3px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-size:13px; user-select:none;
+}
+.goalRow .check.done{background:var(--forest); border-color:var(--forest); color:var(--paper);}
+.goalRow .skillTag{font-family:'IBM Plex Mono',monospace; font-size:12px; display:flex; align-items:center; gap:6px;}
+.goalRow input[type=text]{
+  border:none; border-bottom:1px solid var(--rule); background:transparent; font-family:'Inter',sans-serif;
+  font-size:14px; padding:4px 2px; color:var(--ink);
+}
+.goalRow input[type=text]:focus{outline:none; border-bottom-color:var(--ink);}
+.goalRow.done input[type=text]{text-decoration:line-through; color:var(--ink-soft);}
+.minutesWrap{display:flex; align-items:center; gap:4px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft);}
+.minutesWrap input{
+  width:52px; border:1px solid var(--rule); border-radius:3px; padding:4px 6px; font-family:'IBM Plex Mono',monospace;
+  background:var(--paper);
+}
+.streakMini{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--gold); text-align:right;}
+.emptyState{
+  padding:40px 20px; text-align:center; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; font-size:13px;
+  border:1.5px dashed var(--rule); border-radius:4px;
+}
+
+/* Planner */
+.plannerScroll{overflow-x:auto;}
+.plannerGrid{
+  display:grid; grid-template-columns:56px repeat(7,1fr); min-width:760px;
+  border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:var(--card);
+}
+.plannerGrid .corner, .plannerGrid .dayHdr{
+  font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--ink-soft); text-align:center; padding:8px 2px; border-bottom:1.5px solid var(--ink);
+  background:var(--paper-dark); position:sticky; top:0;
+}
+.plannerGrid .hourLbl{
+  font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft); text-align:right; padding:4px 6px;
+  border-top:1px solid var(--rule); border-right:1px solid var(--rule);
+}
+.plannerGrid .cell{
+  border-top:1px solid var(--rule); border-right:1px solid var(--rule); height:22px; cursor:pointer; position:relative;
+}
+.plannerGrid .cell:hover{outline:1.5px solid var(--ink); outline-offset:-1.5px;}
+.legend{display:flex; gap:14px; margin-top:14px; flex-wrap:wrap;}
+.legend .item{display:flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft);}
+.legend .sw{width:9px; height:9px; border-radius:2px;}
+.picker{
+  position:absolute; z-index:20; background:var(--card); border:1.5px solid var(--ink); border-radius:4px;
+  box-shadow:0 4px 14px rgba(0,0,0,.18); padding:6px; min-width:150px;
+}
+.picker .opt{
+  padding:7px 10px; font-family:'IBM Plex Mono',monospace; font-size:12px; cursor:pointer; border-radius:3px;
+  display:flex; align-items:center; gap:8px;
+}
+.picker .opt:hover{background:var(--paper-dark);}
+
+/* Lessons & Tasks */
+.chip{
+  min-width:auto; padding:9px 16px; display:flex; align-items:center; gap:7px; cursor:pointer;
+  font-family:'IBM Plex Mono',monospace; font-size:12px; border:1px solid var(--rule); background:var(--card);
+  border-radius:20px;
+}
+.chip.sel{border-color:var(--ink); background:var(--ink); color:var(--paper);}
+.chip .swatch{width:8px; height:8px;}
+.taskRow{
+  display:grid; grid-template-columns:22px 1fr 100px 34px; gap:14px; align-items:center;
+  padding:12px 12px; background:var(--card); border:1px solid var(--rule); border-radius:4px; margin-bottom:8px;
+}
+.taskRow .check{
+  width:20px; height:20px; border:1.5px solid var(--ink); border-radius:3px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-size:13px; user-select:none;
+}
+.taskRow .check.done{background:var(--forest); border-color:var(--forest); color:var(--paper);}
+.taskRow .txt{font-family:'Inter',sans-serif; font-size:14px;}
+.taskRow.done .txt{text-decoration:line-through; color:var(--ink-soft);}
+.taskRow .due{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-align:right;}
+.taskRow .due.overdue{color:var(--danger); font-weight:600;}
+.taskRow .rmBtn{
+  border:none; background:transparent; color:var(--ink-soft); cursor:pointer; font-size:16px; line-height:1;
+}
+.taskRow .rmBtn:hover{color:var(--danger);}
+.addTaskRow{
+  display:flex; gap:10px; margin-top:14px; padding-top:14px; border-top:1.5px dashed var(--rule);
+}
+.addTaskRow input[type=text]{
+  flex:1; border:1px solid var(--rule); border-radius:3px; padding:9px 12px; font-family:'Inter',sans-serif; font-size:14px; background:var(--paper);
+}
+.addTaskRow input[type=date]{
+  border:1px solid var(--rule); border-radius:3px; padding:9px 10px; font-family:'IBM Plex Mono',monospace; font-size:12px; background:var(--paper);
+}
+.taskProgress{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); margin-bottom:14px;}
+
+/* Targets */
+.ledgerTable{width:100%; border-collapse:collapse; font-family:'IBM Plex Mono',monospace; font-size:13px;}
+.ledgerTable th{
+  text-align:left; padding:8px 10px; font-size:10px; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--ink-soft); border-bottom:2px solid var(--ink); font-weight:500;
+}
+.ledgerTable td{padding:12px 10px; border-bottom:1px solid var(--rule); vertical-align:middle;}
+.ledgerTable .skillName{font-family:'Fraunces',serif; font-size:15px; font-weight:600; color:var(--ink);}
+.ledgerTable .desc{font-family:'Inter',sans-serif; font-size:12px; color:var(--ink-soft); margin-top:2px;}
+.progBarBg{width:110px; height:6px; background:var(--paper-dark); border-radius:3px; overflow:hidden;}
+.progBarFill{height:100%;}
+.rowActions{display:flex; gap:8px;}
+.iconBtn{
+  border:1px solid var(--rule); background:var(--paper); border-radius:3px; padding:4px 8px; cursor:pointer;
+  font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft);
+}
+.iconBtn:hover{border-color:var(--ink); color:var(--ink);}
+.overdue{color:var(--danger); font-weight:600;}
+.dueSoon{color:var(--rust); font-weight:600;}
+
+/* Modal */
+.overlay{
+  position:fixed; inset:0; background:rgba(35,38,43,.45); display:none; align-items:center; justify-content:center; z-index:50;
+}
+.overlay.active{display:flex;}
+.modal{
+  background:var(--card); border-radius:6px; padding:26px; width:420px; max-width:90vw;
+  border:1px solid var(--rule); box-shadow:0 10px 40px rgba(0,0,0,.25);
+}
+.modal h3{font-family:'Fraunces',serif; font-size:20px; margin-bottom:16px;}
+.field{margin-bottom:14px;}
+.field label{
+  display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase;
+  letter-spacing:.06em; color:var(--ink-soft); margin-bottom:5px;
+}
+.field input, .field textarea{
+  width:100%; border:1px solid var(--rule); border-radius:3px; padding:8px 10px; font-family:'Inter',sans-serif;
+  font-size:14px; background:var(--paper);
+}
+.field textarea{resize:vertical; min-height:50px;}
+.swatches{display:flex; gap:8px; flex-wrap:wrap;}
+.swOpt{width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent;}
+.swOpt.sel{border-color:var(--ink);}
+.modalActions{display:flex; justify-content:space-between; margin-top:18px; align-items:center;}
+.btn{
+  font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:.05em;
+  padding:9px 16px; border-radius:3px; cursor:pointer; border:1.5px solid var(--ink);
+}
+.btnPrimary{background:var(--ink); color:var(--paper);}
+.btnGhost{background:transparent; color:var(--ink-soft); border-color:transparent;}
+.btnDanger{border-color:var(--danger); color:var(--danger); background:transparent;}
+.loading{text-align:center; padding:60px; font-family:'IBM Plex Mono',monospace; color:var(--ink-soft);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>The Study Ledger</h1>
+      <div class="sub">Progress · Daily Goals · Deadlines</div>
+    </div>
+    <div class="dateStamp"><span id="todayLong"></span><b id="todayDay"></b></div>
+  </header>
+
+  <div class="skillStrip" id="skillStrip"></div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="today">Today's Log</button>
+    <button class="tab" data-tab="planner">Weekly Planner</button>
+    <button class="tab" data-tab="lessons">Lessons &amp; Tasks</button>
+    <button class="tab" data-tab="targets">Targets &amp; Deadlines</button>
+  </div>
+
+  <div class="panel active" id="panel-today">
+    <div class="dayHead" id="todayHead"></div>
+    <div id="todayList"></div>
+  </div>
+
+  <div class="panel" id="panel-planner">
+    <div class="dayHead">Weekly Time Blocks</div>
+    <div class="plannerScroll"><div class="plannerGrid" id="plannerGrid"></div></div>
+    <div class="legend" id="plannerLegend"></div>
+  </div>
+
+  <div class="panel" id="panel-lessons">
+    <div class="dayHead">Lessons &amp; Tasks</div>
+    <div class="skillStrip" id="lessonSkillChips" style="margin-bottom:20px;"></div>
+    <div id="lessonBody"></div>
+  </div>
+
+  <div class="panel" id="panel-targets">
+    <div class="dayHead">Targets &amp; Deadlines</div>
+    <table class="ledgerTable" id="targetsTable">
+      <thead><tr><th>Skill</th><th>Weekly hrs (this wk)</th><th>Deadline</th><th>Weekly progress</th><th>Lessons/Tasks</th><th></th></tr></thead>
+      <tbody id="targetsBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="modalTitle">New Skill</h3>
+    <div class="field"><label>Name</label><input type="text" id="fName" placeholder="e.g. Spanish, Guitar, Calculus"></div>
+    <div class="field"><label>Colour</label><div class="swatches" id="swatches"></div></div>
+    <div class="field"><label>Weekly target (hours)</label><input type="number" id="fHours" min="0" step="0.5" placeholder="e.g. 5"></div>
+    <div class="field"><label>Deadline (optional)</label><input type="date" id="fDeadline"></div>
+    <div class="field"><label>Target / goal description</label><textarea id="fDesc" placeholder="e.g. Reach B2 level, finish Book 3"></textarea></div>
+    <div class="modalActions">
+      <button class="btn btnDanger" id="deleteBtn" style="display:none">Delete skill</button>
+      <div style="display:flex; gap:8px; margin-left:auto;">
+        <button class="btn btnGhost" id="cancelBtn">Cancel</button>
+        <button class="btn btnPrimary" id="saveBtn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PALETTE = ['#2F4B3C','#3F5E77','#C1793C','#A23B2E','#B08D3E','#6b4e8e','#3d7068','#8a4a3a'];
+const HOURS = Array.from({length:18}, (_,i)=>i+6); // 6:00 - 23:00
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+let skills = [];
+let logs = {};      // { 'YYYY-MM-DD': { skillId: {goal, done, minutes} } }
+let schedule = [];  // [{id, day(0-6), hour, skillId}]
+let editingSkillId = null;
+let activePicker = null;
+let selectedTaskSkill = null; // skill id currently shown in Lessons & Tasks tab
+
+const todayKey = () => fmtDate(new Date());
+function fmtDate(d){ return d.toISOString().slice(0,10); }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+
+async function loadAll(){
+  document.querySelector('.wrap').style.opacity = '0.4';
+  try{
+    const [s,l,sc] = await Promise.all([
+      window.storage.get('skills').catch(()=>null),
+      window.storage.get('logs').catch(()=>null),
+      window.storage.get('schedule').catch(()=>null),
+    ]);
+    skills = s ? JSON.parse(s.value) : [];
+    skills.forEach(sk=>{ if(!Array.isArray(sk.tasks)) sk.tasks = []; });
+    logs = l ? JSON.parse(l.value) : {};
+    schedule = sc ? JSON.parse(sc.value) : [];
+  }catch(e){ console.error('load error', e); }
+  document.querySelector('.wrap').style.opacity = '1';
+  renderAll();
+}
+async function saveSkills(){ try{ await window.storage.set('skills', JSON.stringify(skills)); }catch(e){console.error(e);} }
+async function saveLogs(){ try{ await window.storage.set('logs', JSON.stringify(logs)); }catch(e){console.error(e);} }
+async function saveSchedule(){ try{ await window.storage.set('schedule', JSON.stringify(schedule)); }catch(e){console.error(e);} }
+
+/* ---------- date helpers ---------- */
+function startOfWeek(d){
+  const dt = new Date(d);
+  const day = (dt.getDay()+6)%7; // Mon=0
+  dt.setDate(dt.getDate()-day);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+function weekMinutes(skillId){
+  const start = startOfWeek(new Date());
+  let total = 0;
+  for(let i=0;i<7;i++){
+    const d = new Date(start); d.setDate(start.getDate()+i);
+    const key = fmtDate(d);
+    if(logs[key] && logs[key][skillId]) total += (logs[key][skillId].minutes||0);
+  }
+  return total;
+}
+function currentStreak(skillId){
+  let streak = 0;
+  let d = new Date();
+  // if today not done yet, start counting from yesterday
+  const todayDone = logs[todayKey()] && logs[todayKey()][skillId] && logs[todayKey()][skillId].done;
+  if(!todayDone) d.setDate(d.getDate()-1);
+  for(let i=0;i<400;i++){
+    const key = fmtDate(d);
+    if(logs[key] && logs[key][skillId] && logs[key][skillId].done){
+      streak++; d.setDate(d.getDate()-1);
+    } else break;
+  }
+  return streak;
+}
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  const now = new Date(); now.setHours(0,0,0,0);
+  const dl = new Date(dateStr+'T00:00:00');
+  return Math.round((dl-now)/86400000);
+}
+
+/* ---------- render ---------- */
+function renderAll(){
+  renderHeader();
+  renderSkillStrip();
+  renderToday();
+  renderPlanner();
+  renderLessons();
+  renderTargets();
+}
+function renderHeader(){
+  const now = new Date();
+  document.getElementById('todayLong').textContent = now.toLocaleDateString(undefined,{weekday:'long', year:'numeric'});
+  document.getElementById('todayDay').textContent = now.toLocaleDateString(undefined,{month:'short', day:'numeric'});
+  document.getElementById('todayHead').textContent = "Log for " + now.toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'});
+}
+function renderSkillStrip(){
+  const el = document.getElementById('skillStrip');
+  el.innerHTML = '';
+  skills.forEach(sk=>{
+    const wMin = weekMinutes(sk.id);
+    const wTargetMin = (sk.hours||0)*60;
+    const pct = wTargetMin>0 ? Math.min(100, Math.round(wMin/wTargetMin*100)) : 0;
+    const du = daysUntil(sk.deadline);
+    const card = document.createElement('div');
+    card.className='skillCard';
+    card.innerHTML = `
+      <div class="stamp">${currentStreak(sk.id)}</div>
+      <div class="name"><span class="swatch" style="background:${sk.color}"></span>${escapeHtml(sk.name)}</div>
+      <div class="deadline ${du!==null && du<=3 ? 'urgent':''}">${du===null?'no deadline set': du<0? Math.abs(du)+'d overdue' : du===0? 'due today' : du+'d to deadline'}</div>
+      <div class="barBg"><div class="barFill" style="width:${pct}%; background:${sk.color}"></div></div>
+    `;
+    card.addEventListener('click', ()=>openModal(sk.id));
+    el.appendChild(card);
+  });
+  const add = document.createElement('div');
+  add.className='addSkillCard';
+  add.textContent='+ Add skill';
+  add.addEventListener('click', ()=>openModal(null));
+  el.appendChild(add);
+}
+function renderToday(){
+  const list = document.getElementById('todayList');
+  list.innerHTML='';
+  if(skills.length===0){
+    list.innerHTML = '<div class="emptyState">No skills yet. Add one above to start logging today\'s goal.</div>';
+    return;
+  }
+  const key = todayKey();
+  if(!logs[key]) logs[key] = {};
+  skills.forEach(sk=>{
+    if(!logs[key][sk.id]) logs[key][sk.id] = {goal:'', done:false, minutes:0};
+    const entry = logs[key][sk.id];
+    const row = document.createElement('div');
+    row.className = 'goalRow' + (entry.done?' done':'');
+    row.innerHTML = `
+      <div class="check ${entry.done?'done':''}" data-skill="${sk.id}">${entry.done?'✓':''}</div>
+      <div class="skillTag"><span class="swatch" style="background:${sk.color}"></span>${escapeHtml(sk.name)}</div>
+      <input type="text" placeholder="What's today's goal?" value="${escapeAttr(entry.goal)}" data-skill="${sk.id}" data-field="goal">
+      <div class="minutesWrap"><input type="number" min="0" step="5" value="${entry.minutes||0}" data-skill="${sk.id}" data-field="minutes"> min</div>
+      <div class="streakMini">${currentStreak(sk.id)}d streak</div>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('.check').forEach(c=>{
+    c.addEventListener('click', async ()=>{
+      const id = c.dataset.skill;
+      logs[key][id].done = !logs[key][id].done;
+      await saveLogs();
+      renderAll();
+    });
+  });
+  list.querySelectorAll('input[data-field="goal"]').forEach(inp=>{
+    inp.addEventListener('change', async ()=>{
+      logs[key][inp.dataset.skill].goal = inp.value;
+      await saveLogs();
+    });
+  });
+  list.querySelectorAll('input[data-field="minutes"]').forEach(inp=>{
+    inp.addEventListener('change', async ()=>{
+      logs[key][inp.dataset.skill].minutes = parseInt(inp.value)||0;
+      await saveLogs();
+      renderSkillStrip();
+    });
+  });
+}
+function renderPlanner(){
+  const grid = document.getElementById('plannerGrid');
+  grid.innerHTML='';
+  grid.appendChild(makeCell('corner','', ''));
+  DAYS.forEach(d=>grid.appendChild(makeCell('dayHdr', d, '')));
+  HOURS.forEach(h=>{
+    grid.appendChild(makeCell('hourLbl', (h%24)+':00',''));
+    for(let day=0; day<7; day++){
+      const block = schedule.find(b=>b.day===day && b.hour===h);
+      const cell = document.createElement('div');
+      cell.className='cell';
+      cell.style.background = block ? (skills.find(s=>s.id===block.skillId)?.color || '') : '';
+      cell.style.opacity = block ? '0.85' : '1';
+      cell.dataset.day = day; cell.dataset.hour = h;
+      cell.addEventListener('click', (e)=>openPicker(e, day, h));
+      grid.appendChild(cell);
+    }
+  });
+  const legend = document.getElementById('plannerLegend');
+  legend.innerHTML = skills.map(sk=>`<div class="item"><span class="sw" style="background:${sk.color}"></span>${escapeHtml(sk.name)}</div>`).join('') || '<div class="item">Add skills to start planning blocks.</div>';
+}
+function makeCell(cls, text){
+  const d = document.createElement('div');
+  d.className = cls;
+  d.textContent = text;
+  return d;
+}
+function openPicker(e, day, hour){
+  closePicker();
+  if(skills.length===0){ openModal(null); return; }
+  const pk = document.createElement('div');
+  pk.className='picker';
+  const rect = e.target.getBoundingClientRect();
+  pk.style.left = (window.scrollX + rect.left) + 'px';
+  pk.style.top = (window.scrollY + rect.bottom + 4) + 'px';
+  const clearOpt = document.createElement('div');
+  clearOpt.className='opt'; clearOpt.textContent='— clear —';
+  clearOpt.addEventListener('click', async ()=>{
+    schedule = schedule.filter(b=>!(b.day===day && b.hour===hour));
+    await saveSchedule(); renderPlanner(); closePicker();
+  });
+  pk.appendChild(clearOpt);
+  skills.forEach(sk=>{
+    const opt = document.createElement('div');
+    opt.className='opt';
+    opt.innerHTML = `<span class="sw" style="width:9px;height:9px;border-radius:2px;background:${sk.color}"></span>${escapeHtml(sk.name)}`;
+    opt.addEventListener('click', async ()=>{
+      schedule = schedule.filter(b=>!(b.day===day && b.hour===hour));
+      schedule.push({id:uid(), day, hour, skillId:sk.id});
+      await saveSchedule(); renderPlanner(); closePicker();
+    });
+    pk.appendChild(opt);
+  });
+  document.body.appendChild(pk);
+  activePicker = pk;
+  setTimeout(()=>document.addEventListener('click', outsidePickerClick), 0);
+}
+function outsidePickerClick(e){
+  if(activePicker && !activePicker.contains(e.target)){ closePicker(); }
+}
+function closePicker(){
+  if(activePicker){ activePicker.remove(); activePicker=null; document.removeEventListener('click', outsidePickerClick); }
+}
+function renderLessons(){
+  const chips = document.getElementById('lessonSkillChips');
+  const body = document.getElementById('lessonBody');
+  chips.innerHTML=''; body.innerHTML='';
+
+  if(skills.length===0){
+    body.innerHTML = '<div class="emptyState">Add a skill first, then break it into lessons or tasks here.</div>';
+    return;
+  }
+  if(!selectedTaskSkill || !skills.find(s=>s.id===selectedTaskSkill)){
+    selectedTaskSkill = skills[0].id;
+  }
+  skills.forEach(sk=>{
+    const chip = document.createElement('div');
+    chip.className = 'skillCard chip' + (sk.id===selectedTaskSkill?' sel':'');
+    const done = sk.tasks.filter(t=>t.done).length;
+    chip.innerHTML = `<span class="swatch" style="background:${sk.id===selectedTaskSkill?'transparent':sk.color}; border:2px solid ${sk.color}"></span>${escapeHtml(sk.name)} <span style="opacity:.7">(${done}/${sk.tasks.length})</span>`;
+    chip.addEventListener('click', ()=>{ selectedTaskSkill = sk.id; renderLessons(); });
+    chips.appendChild(chip);
+  });
+
+  const sk = skills.find(s=>s.id===selectedTaskSkill);
+  const done = sk.tasks.filter(t=>t.done).length;
+  const total = sk.tasks.length;
+  const progWrap = document.createElement('div');
+  progWrap.className='taskProgress';
+  progWrap.textContent = total>0 ? `${done} of ${total} lessons/tasks complete` : 'No lessons or tasks yet — add the first one below.';
+  body.appendChild(progWrap);
+
+  sk.tasks.forEach(t=>{
+    const row = document.createElement('div');
+    row.className = 'taskRow' + (t.done?' done':'');
+    const du = daysUntil(t.due);
+    let dueTxt = '';
+    let overdue = false;
+    if(t.due){
+      if(du<0){ dueTxt = `${Math.abs(du)}d overdue`; overdue = !t.done; }
+      else if(du===0){ dueTxt = 'due today'; overdue = !t.done; }
+      else { dueTxt = `${du}d left`; }
+    }
+    row.innerHTML = `
+      <div class="check ${t.done?'done':''}" data-id="${t.id}">${t.done?'✓':''}</div>
+      <div class="txt">${escapeHtml(t.text)}</div>
+      <div class="due ${overdue?'overdue':''}">${dueTxt}</div>
+      <button class="rmBtn" data-id="${t.id}" title="Remove">×</button>
+    `;
+    row.querySelector('.check').addEventListener('click', async ()=>{
+      t.done = !t.done;
+      await saveSkills();
+      renderAll();
+    });
+    row.querySelector('.rmBtn').addEventListener('click', async ()=>{
+      sk.tasks = sk.tasks.filter(x=>x.id!==t.id);
+      await saveSkills();
+      renderAll();
+    });
+    body.appendChild(row);
+  });
+
+  const form = document.createElement('div');
+  form.className='addTaskRow';
+  form.innerHTML = `
+    <input type="text" id="newTaskText" placeholder="Add a lesson or task, e.g. 'Finish Chapter 4 exercises'">
+    <input type="date" id="newTaskDue">
+    <button class="btn btnPrimary" id="addTaskBtn">Add</button>
+  `;
+  body.appendChild(form);
+  document.getElementById('addTaskBtn').addEventListener('click', addTaskHandler);
+  document.getElementById('newTaskText').addEventListener('keydown', (e)=>{ if(e.key==='Enter') addTaskHandler(); });
+}
+async function addTaskHandler(){
+  const textEl = document.getElementById('newTaskText');
+  const dueEl = document.getElementById('newTaskDue');
+  const text = textEl.value.trim();
+  if(!text) return;
+  const sk = skills.find(s=>s.id===selectedTaskSkill);
+  sk.tasks.push({id:uid(), text, due:dueEl.value||'', done:false});
+  await saveSkills();
+  renderAll();
+}
+function renderTargets(){
+  const body = document.getElementById('targetsBody');
+  body.innerHTML='';
+  if(skills.length===0){
+    body.innerHTML = '<tr><td colspan="5" style="padding:24px 10px; color:var(--ink-soft); font-family:\'IBM Plex Mono\',monospace;">No skills tracked yet.</td></tr>';
+    return;
+  }
+  skills.forEach(sk=>{
+    const wMin = weekMinutes(sk.id);
+    const wTargetMin = (sk.hours||0)*60;
+    const pct = wTargetMin>0 ? Math.min(100, Math.round(wMin/wTargetMin*100)) : 0;
+    const du = daysUntil(sk.deadline);
+    let dueLabel = '—', dueCls='';
+    if(du!==null){
+      if(du<0){ dueLabel = `${Math.abs(du)}d overdue`; dueCls='overdue'; }
+      else if(du===0){ dueLabel='due today'; dueCls='overdue'; }
+      else if(du<=7){ dueLabel=`${du}d left`; dueCls='dueSoon'; }
+      else { dueLabel=`${du}d left`; }
+    }
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="skillName"><span class="swatch" style="width:9px;height:9px;border-radius:50%;display:inline-block;background:${sk.color};margin-right:6px;"></span>${escapeHtml(sk.name)}</span>
+          <div class="desc">${escapeHtml(sk.desc||'')}</div></td>
+      <td>${(wMin/60).toFixed(1)}h / ${sk.hours||0}h</td>
+      <td class="${dueCls}">${sk.deadline? sk.deadline + ' · ' + dueLabel : 'no deadline'}</td>
+      <td><div class="progBarBg"><div class="progBarFill" style="width:${pct}%; background:${sk.color}"></div></div></td>
+      <td>${sk.tasks.filter(t=>t.done).length}/${sk.tasks.length} <button class="iconBtn" data-view="${sk.id}" style="margin-left:6px;">View</button></td>
+      <td><div class="rowActions"><button class="iconBtn" data-edit="${sk.id}">Edit</button></div></td>
+    `;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click', ()=>openModal(b.dataset.edit)));
+  body.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click', ()=>{
+    selectedTaskSkill = b.dataset.view;
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    document.querySelector('.tab[data-tab="lessons"]').classList.add('active');
+    document.getElementById('panel-lessons').classList.add('active');
+    renderLessons();
+  }));
+}
+
+/* ---------- modal ---------- */
+function openModal(skillId){
+  editingSkillId = skillId;
+  const overlay = document.getElementById('overlay');
+  const sk = skills.find(s=>s.id===skillId);
+  document.getElementById('modalTitle').textContent = sk ? 'Edit Skill' : 'New Skill';
+  document.getElementById('fName').value = sk? sk.name : '';
+  document.getElementById('fHours').value = sk? sk.hours : '';
+  document.getElementById('fDeadline').value = sk? (sk.deadline||'') : '';
+  document.getElementById('fDesc').value = sk? (sk.desc||'') : '';
+  document.getElementById('deleteBtn').style.display = sk ? 'inline-block' : 'none';
+  renderSwatches(sk ? sk.color : PALETTE[skills.length % PALETTE.length]);
+  overlay.classList.add('active');
+}
+function renderSwatches(selected){
+  const sw = document.getElementById('swatches');
+  sw.innerHTML='';
+  sw.dataset.selected = selected;
+  PALETTE.forEach(c=>{
+    const d = document.createElement('div');
+    d.className='swOpt' + (c===selected?' sel':'');
+    d.style.background=c;
+    d.addEventListener('click', ()=>{
+      sw.dataset.selected = c;
+      sw.querySelectorAll('.swOpt').forEach(o=>o.classList.remove('sel'));
+      d.classList.add('sel');
+    });
+    sw.appendChild(d);
+  });
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('active'); editingSkillId=null; }
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+document.getElementById('overlay').addEventListener('click', (e)=>{ if(e.target.id==='overlay') closeModal(); });
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('fName').value.trim();
+  if(!name) return;
+  const hours = parseFloat(document.getElementById('fHours').value)||0;
+  const deadline = document.getElementById('fDeadline').value;
+  const desc = document.getElementById('fDesc').value.trim();
+  const color = document.getElementById('swatches').dataset.selected;
+  if(editingSkillId){
+    const sk = skills.find(s=>s.id===editingSkillId);
+    Object.assign(sk, {name, hours, deadline, desc, color});
+  } else {
+    skills.push({id:uid(), name, hours, deadline, desc, color, tasks:[]});
+  }
+  await saveSkills();
+  closeModal();
+  renderAll();
+});
+document.getElementById('deleteBtn').addEventListener('click', async ()=>{
+  if(!editingSkillId) return;
+  skills = skills.filter(s=>s.id!==editingSkillId);
+  schedule = schedule.filter(b=>b.skillId!==editingSkillId);
+  Object.values(logs).forEach(day=>{ delete day[editingSkillId]; });
+  await Promise.all([saveSkills(), saveSchedule(), saveLogs()]);
+  closeModal();
+  renderAll();
+});
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  });
+});
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s){ return escapeHtml(s); }
+
+loadAll();
+</script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+</body>
+</html>
