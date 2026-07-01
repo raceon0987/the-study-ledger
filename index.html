@@ -209,6 +209,32 @@ header{
 .iconBtn:hover{border-color:var(--ink); color:var(--ink);}
 .overdue{color:var(--danger); font-weight:600;}
 .dueSoon{color:var(--rust); font-weight:600;}
+/* Pomodoro 135deg, rgb(9, 92, 9)  0%, #90d685 100% solid #006a1ee9 */
+.pomodoro-btn{
+  background: linear-gradient(135deg, #d0d5c5 0%, #549112 100%);
+  border: 1px solid #fff;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #2F4B3C;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 3px 10px rgba(255, 107, 107, 0.25);
+  transition: all 0.25s ease;
+}
+
+/* 135deg, #d0d5c5 0%, #549112 100%) */
+
+.pomodoro-btn:hover{
+  background: linear-gradient(135deg, rgb(9, 92, 9)  0%, #90d685 100%);
+  border-color: #f7f4f4;
+  color:#fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(255, 82, 82, 0.35);
+}
 
 /* Modal */
 .overlay{
@@ -251,7 +277,15 @@ header{
       <h1>The Study Ledger</h1>
       <div class="sub">Progress · Daily Goals · Deadlines</div>
     </div>
-    <div class="dateStamp"><span id="todayLong"></span><b id="todayDay"></b></div>
+    <div>
+      <button class="pomodoro-btn" id="mode" onclick="start()">Start</button>
+      <button class="pomodoro-btn" id="time" onclick="pause()">Pause</button>
+      <button class="pomodoro-btn" onclick="reset()">Reset</button>
+    </div>
+   
+   <div class="dateStamp"><span id="todayLong"></span><b id="todayDay"></b></div>
+
+
   </header>
 
   <div class="skillStrip" id="skillStrip"></div>
@@ -286,6 +320,13 @@ header{
       <thead><tr><th>Skill</th><th>Weekly hrs (this wk)</th><th>Deadline</th><th>Weekly progress</th><th>Lessons/Tasks</th><th></th></tr></thead>
       <tbody id="targetsBody"></tbody>
     </table>
+  </div>
+  <div style="display:flex; gap:10px; margin:8px; padding: 4px;">
+    <button class="tab" onclick="exportData()" style="padding: 4px; height: 24px; border-radius: 12px; font-size:x-small;">Export</button>
+    <label class="tab" style="display:flex;align-items:center;justify-content:center;cursor:pointer;padding: 4px;height: 24px; border-radius: 12px; font-size: x-small;">
+      Import
+      <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(event)">
+    </label>
   </div>
 </div>
 
@@ -323,25 +364,25 @@ const todayKey = () => fmtDate(new Date());
 function fmtDate(d){ return d.toISOString().slice(0,10); }
 function uid(){ return Math.random().toString(36).slice(2,9); }
 
-async function loadAll(){
+
+function loadAll(){
   document.querySelector('.wrap').style.opacity = '0.4';
   try{
-    const [s,l,sc] = await Promise.all([
-      window.storage.get('skills').catch(()=>null),
-      window.storage.get('logs').catch(()=>null),
-      window.storage.get('schedule').catch(()=>null),
-    ]);
-    skills = s ? JSON.parse(s.value) : [];
+    const [s,l,sc] =  [
+    localStorage.getItem('skills'),
+    localStorage.getItem('logs'),
+    localStorage.getItem('schedule')];
+    skills = s ? JSON.parse(s) : [];
     skills.forEach(sk=>{ if(!Array.isArray(sk.tasks)) sk.tasks = []; });
-    logs = l ? JSON.parse(l.value) : {};
-    schedule = sc ? JSON.parse(sc.value) : [];
+    logs = l ? JSON.parse(l) : {};
+    schedule = sc ? JSON.parse(sc) : [];
   }catch(e){ console.error('load error', e); }
   document.querySelector('.wrap').style.opacity = '1';
   renderAll();
 }
-async function saveSkills(){ try{ await window.storage.set('skills', JSON.stringify(skills)); }catch(e){console.error(e);} }
-async function saveLogs(){ try{ await window.storage.set('logs', JSON.stringify(logs)); }catch(e){console.error(e);} }
-async function saveSchedule(){ try{ await window.storage.set('schedule', JSON.stringify(schedule)); }catch(e){console.error(e);} }
+function saveSkills(){ try{localStorage.setItem('skills', JSON.stringify(skills)); }catch(e){console.error(e);} }
+function saveLogs(){ try{ localStorage.setItem('logs', JSON.stringify(logs)); }catch(e){console.error(e);} }
+function saveSchedule(){ try{ localStorage.setItem('schedule', JSON.stringify(schedule)); }catch(e){console.error(e);} }
 
 /* ---------- date helpers ---------- */
 function startOfWeek(d){
@@ -578,12 +619,12 @@ function renderLessons(){
     `;
     row.querySelector('.check').addEventListener('click', async ()=>{
       t.done = !t.done;
-      await saveSkills();
+      saveSkills();
       renderAll();
     });
     row.querySelector('.rmBtn').addEventListener('click', async ()=>{
       sk.tasks = sk.tasks.filter(x=>x.id!==t.id);
-      await saveSkills();
+      saveSkills();
       renderAll();
     });
     body.appendChild(row);
@@ -600,14 +641,14 @@ function renderLessons(){
   document.getElementById('addTaskBtn').addEventListener('click', addTaskHandler);
   document.getElementById('newTaskText').addEventListener('keydown', (e)=>{ if(e.key==='Enter') addTaskHandler(); });
 }
-async function addTaskHandler(){
+function addTaskHandler(){
   const textEl = document.getElementById('newTaskText');
   const dueEl = document.getElementById('newTaskDue');
   const text = textEl.value.trim();
   if(!text) return;
   const sk = skills.find(s=>s.id===selectedTaskSkill);
   sk.tasks.push({id:uid(), text, due:dueEl.value||'', done:false});
-  await saveSkills();
+ saveSkills();
   renderAll();
 }
 function renderTargets(){
@@ -698,7 +739,7 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
   } else {
     skills.push({id:uid(), name, hours, deadline, desc, color, tasks:[]});
   }
-  await saveSkills();
+  saveSkills();
   closeModal();
   renderAll();
 });
@@ -707,7 +748,7 @@ document.getElementById('deleteBtn').addEventListener('click', async ()=>{
   skills = skills.filter(s=>s.id!==editingSkillId);
   schedule = schedule.filter(b=>b.skillId!==editingSkillId);
   Object.values(logs).forEach(day=>{ delete day[editingSkillId]; });
-  await Promise.all([saveSkills(), saveSchedule(), saveLogs()]);
+  Promise.all([saveSkills(), saveSchedule(), saveLogs()]);
   closeModal();
   renderAll();
 });
@@ -726,44 +767,103 @@ function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':
 function escapeAttr(s){ return escapeHtml(s); }
 
 loadAll();
-</script>
-<!-- Code injected by live-server -->
-<script>
-	// <![CDATA[  <-- For SVG support
-	if ('WebSocket' in window) {
-		(function () {
-			function refreshCSS() {
-				var sheets = [].slice.call(document.getElementsByTagName("link"));
-				var head = document.getElementsByTagName("head")[0];
-				for (var i = 0; i < sheets.length; ++i) {
-					var elem = sheets[i];
-					var parent = elem.parentElement || head;
-					parent.removeChild(elem);
-					var rel = elem.rel;
-					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
-						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
-						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
-					}
-					parent.appendChild(elem);
-				}
-			}
-			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-			var address = protocol + window.location.host + window.location.pathname + '/ws';
-			var socket = new WebSocket(address);
-			socket.onmessage = function (msg) {
-				if (msg.data == 'reload') window.location.reload();
-				else if (msg.data == 'refreshcss') refreshCSS();
-			};
-			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
-				console.log('Live reload enabled.');
-				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
-			}
-		})();
-	}
-	else {
-		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
-	}
-	// ]]>
+// pomodoro
+let workTime = 25 * 60;   // 25 minutes
+let breakTime = 5 * 60;   // 5 minutes
+
+let timeLeft = workTime;
+let timer = null;
+let isWorking = true;
+
+// Format time mm:ss
+function formatTime(sec) {
+  let m = Math.floor(sec / 60);
+  let s = sec % 60;
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+// Update UI
+function updateDisplay() {
+  document.getElementById("time").textContent = formatTime(timeLeft);
+  document.getElementById("mode").textContent = isWorking ? "Work" : "Break";
+}
+
+// Start timer
+function start() {
+  if (timer) return;
+
+  timer = setInterval(() => {
+    timeLeft--;
+    updateDisplay();
+
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      timer = null;
+
+      // Switch mode
+      isWorking = !isWorking;
+      timeLeft = isWorking ? workTime : breakTime;
+
+      updateDisplay();
+      start(); // auto-start next session
+    }
+  }, 1000);
+}
+
+// Pause timer
+function pause() {
+  clearInterval(timer);
+  timer = null;
+}
+
+// Reset timer
+function reset() {
+  clearInterval(timer);
+  timer = null;
+
+  isWorking = true;
+  timeLeft = workTime;
+
+  updateDisplay();
+}
+
+// Initial render
+updateDisplay();
+function exportData() {
+  const dataStr = JSON.stringify(data, null, 2);
+  const blob = new Blob([dataStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "expense-backup.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported.entries) {
+        data = imported;
+        save();
+        render();
+        alert("Data imported successfully");
+      } else {
+        alert("Invalid file");
+      }
+    } catch {
+      alert("Error reading file");
+    }
+  };
+  reader.readAsText(file);
+}
 </script>
 </body>
 </html>
